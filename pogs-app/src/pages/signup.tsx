@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 
+interface SignUpFormState {
+    firstname: string;
+    lastname: string;
+    email: string;
+    password: string;
+   }
+   
 const SignUpForm: React.FC = () => {
  const [formData, setFormData] = useState<SignUpFormState>({
     firstname: '',
