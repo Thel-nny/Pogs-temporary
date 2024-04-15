@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const SignUpForm: React.FC = () => {
- const [formData, setFormData] = useState<SignUpFormState>({
+ const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
     email: '',

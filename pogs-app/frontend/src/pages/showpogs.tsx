@@ -7,11 +7,9 @@ interface FormData {
 }
 
 // Define the type for the form props
-interface FormProps {
- onSubmit: (data: FormData) => void;
-}
 
-const Form: React.FC<FormProps> = ({ onSubmit }) => {
+
+const Form: React.FC = () => {
  // Initialize the form state
  const [formData, setFormData] = useState<FormData>({ name: '', age: 0 });
 
@@ -24,7 +22,6 @@ const Form: React.FC<FormProps> = ({ onSubmit }) => {
  // Handler for form submission
  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit(formData);
  };
 
  return (
