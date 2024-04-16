@@ -3,6 +3,7 @@ import express from "express";
 import pogs from "./routes"
 import bodyParser from 'body-parser';
 import { Pool } from 'pg';
+import cors from 'cors';
 app.use(bodyParser.json());
 app
  .use(express.static(__dirname))
@@ -11,19 +12,20 @@ app
  .use("/", pogs);
 
 const pool = new Pool({
-    user: 'your_username',
+    user: 'postgres',
     host: 'localhost',
-    database: 'your_database_name',
-    password: 'your_password',
-    port: 5432
+    database: 'Lab2 (Testing)',
+    password: 'shawn',
+    port: 5433
   });
 
-
-app.post('/apiv1/signup', async(req, res) => {
+app.use(cors({ origin: 'http://localhost:3000' }))
+app.post('/signup', async(req, res) => {
     const { firstname, lastname, email, password } = req.body;
   try {
     const client = await pool.connect();
-    const result = await client.query('INSERT INTO users (firstname, lastname, email, password) VALUES ($1, $2, $3, $4) RETURNING *', [firstname, lastname, email, password]);
+    const result = await client.query('INSERT INTO users (firstname, lastname, email, password) VALUES ($1, $2, $3, $4) RETURNING *', 
+    [firstname, lastname, email, password]);
     client.release();
     console.log('User signed up successfully:', result.rows[0]);
     res.json({ message: 'User signed up successfully' });
@@ -34,7 +36,7 @@ app.post('/apiv1/signup', async(req, res) => {
  });
 
 
- app.post('/apiv1/login', async (req, res) => {
+ app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     try {
       const client = await pool.connect();
@@ -54,5 +56,5 @@ app.post('/apiv1/signup', async(req, res) => {
     }
   });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

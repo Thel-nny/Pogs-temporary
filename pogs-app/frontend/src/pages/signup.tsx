@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
 
 const SignUpForm: React.FC = () => {
- const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
+    classification: '',
     firstname: '',
     lastname: '',
     email: '',
     password: '',
- });
+  });
 
- const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prevData => ({ ...prevData, [name]: value }));
- };
+  };
 
- const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8080/apiv1/signup', {
+      const response = await fetch('http://localhost:8080/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -25,15 +26,17 @@ const SignUpForm: React.FC = () => {
       });
       if (!response.ok) {
         throw new Error('Network response was not ok');
+      } else {
+        await response.json();
+        // Assuming the response contains a token
+        alert('Signup successful!');
       }
-      const data = await response.json();
-      console.log(data);
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error);
     }
- };
+  };
 
- return (
+  return (
     <form onSubmit={handleSubmit}>
       <label>
         First Name:
@@ -55,9 +58,14 @@ const SignUpForm: React.FC = () => {
         <input type="password" name="password" value={formData.password} onChange={handleChange} />
       </label>
       <br />
+      <label>
+        Classification:
+        <input type="password" name="classification" value={formData.classification} onChange={handleChange} />
+      </label>
+      <br />
       <button type="submit">Sign Up</button>
     </form>
- );
+  );
 };
 
 export default SignUpForm;

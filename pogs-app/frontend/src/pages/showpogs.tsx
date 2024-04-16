@@ -8,7 +8,6 @@ interface FormData {
 
 // Define the type for the form props
 
-
 const Form: React.FC = () => {
  // Initialize the form state
  const [formData, setFormData] = useState<FormData>({ name: '', age: 0 });
