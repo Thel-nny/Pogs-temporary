@@ -31,17 +31,10 @@ const LoginForm: React.FC = () => {
 
  const handleLogin = async (email: string, password: string) => {
   try {
-    // const response = await fetch('http://localhost:3000/apiv1/login', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({ email, password }),
-    // });
     const response = await axios.post('http://localhost:8080/login', {email, password})
-    
-    if (response.status === 200) {
-      navigate('/showpogs')
+
+    if (response.status === 200) {//if user is user, go to userpogs, else go to admin page
+      navigate('/userPogs')
     } else {
       alert('Login failed.')
     }
@@ -66,6 +59,11 @@ const LoginForm: React.FC = () => {
       </label>
       <br />
       <button type="submit">Login</button>
+      <label>
+        Classification:
+        <input type="text" name="classification" value={formData.password} onChange={handleInputChange} />
+      </label>
+      <br />
     </form>
  );
 };

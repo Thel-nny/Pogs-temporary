@@ -28,8 +28,7 @@ const SignUpForm: React.FC = () => {
         throw new Error('Network response was not ok');
       } else {
         await response.json();
-        // Assuming the response contains a token
-        alert('Signup successful!');
+        console.log(formData)
       }
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error);
@@ -60,7 +59,7 @@ const SignUpForm: React.FC = () => {
       <br />
       <label>
         Classification:
-        <input type="password" name="classification" value={formData.classification} onChange={handleChange} />
+        <input type="text" name="classification" value={formData.classification} onChange={handleChange} />
       </label>
       <br />
       <button type="submit">Sign Up</button>
