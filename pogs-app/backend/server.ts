@@ -56,6 +56,21 @@ app.get('/:userPogs', async (req, res) => {
   }
 })
 
+app.post('/pogsform', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    const { name, ticker_symbol,price, color} = req.body;
+    const result = await client.query('INSERT INTO users (name, ticker_symbol, price, color) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name, ticker_symbol,price, color]);
+    client.release();
+    console.log('Pogs submitted successfully', result.rows[0]);
+    res.json({ message: 'Pogs submitted successfully' });
+  } catch (error) {
+    console.error('Error creating pog:', error);
+    res.status(500).json({ error: 'An error occurred while creating pog' });
+  }
+});
+
 app.get('/adminSide', async (req, res) => {
 
 })
