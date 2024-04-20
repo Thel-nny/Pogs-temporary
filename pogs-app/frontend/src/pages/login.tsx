@@ -61,9 +61,9 @@ const LoginForm: React.FC = () => {
         <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-4' type= "password" name="password" value={formData.password} onChange={handleInputChange} />
         </label>
         <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="submit">Login</button>
-        <label>
+        <label className='py-2 block mb-2 text-md font-medium text-gray-900'>
         Classification:
-        <input type="text" name="classification" value={formData.password} onChange={handleInputChange} />
+        <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-4' type="text" name="classification" value={formData.password} onChange={handleInputChange} />
       </label>
       <br />
     </form>
