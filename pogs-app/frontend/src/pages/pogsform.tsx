@@ -11,7 +11,7 @@ type FormState = {
 
 const PogsForm: React.FC = () => {
  // Initialize the form state
- const [formState, setFormState] = useState<FormState>({
+ const [formState, setFormState] = useState({
     name: '',
     ticker_symbol: '',
     price: 0,
