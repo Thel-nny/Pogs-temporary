@@ -27,14 +27,13 @@ app.post('/signup', async (req, res) => {
     const client = await pool.connect();
     const { firstname, lastname, email, password, classification } = req.body;
     let hashedPassword;
-    let wallet = 5000;
     if (password) {
       hashedPassword = await bcrypt.hash(password, 10);
     } else {
       throw new Error('Password is not provided');
     }
-    const result = await client.query('INSERT INTO users (firstname, lastname, email, password, classification) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [firstname, lastname, email, hashedPassword, classification]);
+    const result = await client.query('INSERT INTO users (firstname, lastname, email, wallet, password, classification) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [firstname, lastname, email, 5000, hashedPassword, classification]);
     client.release();
     console.log('User signed up successfully:', result.rows[0]);
     console.log('Hashed password:', hashedPassword);
@@ -45,13 +44,14 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-app.get('/userPogs', async (req, res) => {
+app.get('/:userPogs', async (req, res) => {
   try {
     const client = await pool.connect()
-    const result = await client.query('SELECT  FROM pogs INNER JOIN users ON users.pogs_id = pogs.user_id WHERE users.pogs_id = $1;')
+    const userId = req.params
+    const result = await client.query('SELECT * FROM pogs INNER JOIN users ON users.pogs_id = pogs.user_id WHERE users.pogs_id = $1;', [userId])
+    res.json({ result });
     client.release()
-     
-  } catch(error: any) {
+  } catch (error: any) {
     console.error('', error)
   }
 })
@@ -65,16 +65,22 @@ app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const client = await pool.connect();
-    const result = await client.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await client.query('SELECT email, password FROM users WHERE email = $1', [email]);
     client.release();
-    if (result.rows.length === 0) {
+    if (result.rows[0].email !== email) {
       return res.status(400).json({ error: 'User not found' });
-    }//figure out login logic for the hashed password
-    const user = result.rows[0];
-    if (user.password !== password) {
-      return res.status(400).json({ error: 'Incorrect password' });
     }
-    res.status(200).json({ message: 'Login successful', user: { id: user.id, email: user.email } });
+    const user = result.rows[0];
+    if (!bcrypt.compare(password, result.rows[0].password)) {
+      return res.status(400).json({ error: 'Incorrect password' });
+    } else {
+      res.status(200).json({
+        message: 'Login successful',
+        user: { id: user.id, email: user.email },
+        classification: user.classification
+      });
+    }
+
   } catch (error: any) {
     console.error('Error logging in:', error.message);
     res.status(500).json({ error: 'An error occurred while logging in' });
