@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import axios from 'axios'
 
 // Define the type for the form state
 type FormState = {
@@ -31,21 +31,14 @@ const PogsForm: React.FC = () => {
  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
-    const response = await fetch('http://localhost:8080/pogsform', {
-      method: 'POST',
+    const response = await axios.post('http://localhost:8080/pogsform', formState, {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(formState),
     });
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    } else {
-      await response.json();
-      console.log(formState)
-    }
+    console.log(response.data);
   } catch (error) {
-    console.error('There was a problem with the fetch operation:', error);
+    console.error('There was a problem with the axios operation:', error);
   }
 };
 
