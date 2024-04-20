@@ -60,7 +60,7 @@ app.post('/pogsform', async (req, res) => {
   try {
     const client = await pool.connect();
     const { name, ticker_symbol,price, color} = req.body;
-    const result = await client.query('INSERT INTO users (name, ticker_symbol, price, color) VALUES ($1, $2, $3, $4) RETURNING *',
+    const result = await client.query('INSERT INTO pogs (name, ticker_symbol, price, color) VALUES ($1, $2, $3, $4) RETURNING *',
       [name, ticker_symbol,price, color]);
     client.release();
     console.log('Pogs submitted successfully', result.rows[0]);
