@@ -9,8 +9,7 @@ import PogsForm from './pages/pogsform';
 
 function App() {
  return (
-    <>
-      <BrowserRouter>
+    <BrowserRouter>
         <Routes>
           <Route path='/login' element={<LoginForm />} />
           <Route path='/signup' element={<SignUpForm />} />
@@ -19,7 +18,6 @@ function App() {
           <Route path='/userPogs' element={<UserPogs/>}/>
         </Routes>
       </BrowserRouter>
-    </>
  );
 }
 

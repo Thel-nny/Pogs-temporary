@@ -6,12 +6,13 @@ import {useNavigate} from 'react-router-dom'
 interface LoginFormData {
  email: string;
  password: string;
+ classification: string
 }
 
 const LoginForm: React.FC = () => {
  // Initialize the form state
  
- const [formData, setFormData] = useState<LoginFormData>({ email: '', password: '' });
+ const [formData, setFormData] = useState<LoginFormData>({ email: '', password: '', classification: '' });
 
  // Handler for form input changes
  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,9 +32,10 @@ const LoginForm: React.FC = () => {
  const handleLogin = async (email: string, password: string) => {
   try {
     const response = await axios.post('http://localhost:8080/login', {email, password})
-
+    console.log(response.data.user.id)
     if (response.status === 200) {//if user is user, go to userpogs, else go to admin page
-      navigate('/userPogs')
+      localStorage.setItem('userId', response.data.user.id)
+      navigate(`/userPogs`)
     } else {
       alert('Login failed.')
     }
@@ -63,7 +65,7 @@ const LoginForm: React.FC = () => {
         <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="submit">Login</button>
         <label className='py-2 block mb-2 text-md font-medium text-gray-900'>
         Classification:
-        <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-4' type="text" name="classification" value={formData.password} onChange={handleInputChange} />
+        <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-4' type="text" name="classification" value={formData.classification} onChange={handleInputChange} />
       </label>
       <br />
     </form>

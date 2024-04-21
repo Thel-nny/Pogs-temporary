@@ -44,12 +44,12 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-app.get('/:userPogs', async (req, res) => {
+app.get('/userPogs/:userId', async (req, res) => {
   try {
     const client = await pool.connect()
-    const userId = req.params
-    const result = await client.query('SELECT * FROM pogs INNER JOIN users ON users.pogs_id = pogs.user_id WHERE users.pogs_id = $1;', [userId])
-    res.json({ result });
+    const userId = req.params.userId
+    const result = await client.query('SELECT * FROM pogs INNER JOIN users ON users.id = pogs.user_id WHERE pogs.user_id = $1', [userId])
+    res.json(result.rows)
     client.release()
   } catch (error: any) {
     console.error('', error)
@@ -80,7 +80,7 @@ app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const client = await pool.connect();
-    const result = await client.query('SELECT email, password FROM users WHERE email = $1', [email]);
+    const result = await client.query('SELECT id, email, password FROM users WHERE email = $1', [email]);
     client.release();
     if (result.rows[0].email !== email) {
       return res.status(400).json({ error: 'User not found' });
@@ -90,7 +90,6 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Incorrect password' });
     } else {
       res.status(200).json({
-        message: 'Login successful',
         user: { id: user.id, email: user.email },
         classification: user.classification
       });

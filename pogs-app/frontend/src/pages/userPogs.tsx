@@ -11,8 +11,9 @@ interface Pog {
   previous_price: number
 }
 
-const UserPogs: React.FC = () => {
+const UserPogs = () => {
   const [userPogs, setUserPogs] = useState<Pog[]>([]);
+  const user = localStorage.getItem('userId')
 
   useEffect(() => {
     fetchUserPogs();
@@ -20,8 +21,9 @@ const UserPogs: React.FC = () => {
 
   const fetchUserPogs = async () => {
     try {
-      const response = await axios.get('/userPogs');
+      const response = await axios.get(`http://localhost:8080/userPogs/${user}`);
       setUserPogs(response.data);
+      
     } catch (error) {
       console.error('Error fetching user pogs:', error);
     }
