@@ -8,20 +8,19 @@ type Pog = {
  ticker_symbol: string;
  price: number;
  color: string;
- user_id: number;
  previous_price: number;
 };
 
 const ChangePogsForm: React.FC = () => {
  const [currentData, setCurrentData] = useState<Pog | null>(null);
  const [showPriceInput, setShowPriceInput] = useState(false);
-  const pogs = localStorage.getItem('userId');
+  const id = localStorage.getItem('id');
 
   useEffect(() => {
-   if (pogs) {
+   if (id) {
       const fetchCurrentData = async () => {
         try {
-          const response = await axios.get(`http://localhost:8080/pogs/${pogs}`);
+          const response = await axios.get(`http://localhost:8080/pogs/${id}`);
           setCurrentData(response.data);
         } catch (error) {
           console.error('Failed to fetch current data:', error);
@@ -30,7 +29,7 @@ const ChangePogsForm: React.FC = () => {
   
       fetchCurrentData();
    }
-  }, [pogs]); // Add pogs as a dependency to re-run the effect if it changes
+  }, [id]); // Add pogs as a dependency to re-run the effect if it changes
   
 
  // Handler for form submission
