@@ -86,7 +86,8 @@ app.get('/pogs/:id', async (req, res) => {
 
  app.put('/pogs/:id', async (req, res) => {
   try {
-     const { rows } = await pool.query('UPDATE pogs SET price = $1 WHERE id = $2 RETURNING *', [req.body.price, req.params.id]);
+     const { rows } = await pool.query('UPDATE pogs SET price = $1 WHERE id = $2 RETURNING *', 
+     [req.body.price, req.params.id]);
      if (!rows.length) {
        return res.status(404).json({ message: 'Pog not found' });
      }
@@ -97,6 +98,44 @@ app.get('/pogs/:id', async (req, res) => {
   }
  });
 
+ app.post('/buyPog', async (req, res) => {
+  try {
+    const { pogId } = req.query
+    const client = await pool.connect();
+    const result = await client.query('UPDATE pogs SET pogs.user_id = users.id WHERE id = $1',
+    [pogId]);
+    client.release();
+    res.json({ message: 'The Pog has been purchased successfully.' , result});
+  } catch (error) {
+    console.error('Error creating pog:', error);
+    res.status(500).json({ error: 'An error occurred while creating pog' });
+  }
+})
+
+app.get('/sellPog', async (req, res) => {
+  try {
+    const { userId, pogId } = req.query;
+    const client = await pool.connect();
+    const result = await client.query('UPDATE pogs SET user_id = null WHERE id = $1',
+    [pogId]);
+    client.release();
+    res.json({ message: 'The Pog has been sold successfully.', result });
+  } catch (error) {
+    console.error('Error selling pog:', error);
+    res.status(500).json({ error: 'An error occurred while selling pog' });
+  }
+});
+
+app.get('/pogsForSale', async (req, res) => {
+  try {
+    const client = await pool.connect()
+    const result = await client.query('SELECT * FROM pogs WHERE user_id IS NULL')
+    res.json(result.rows)
+    client.release()
+  } catch (error: any) {
+    console.error('', error)
+  }
+})
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -108,7 +147,7 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'User not found' });
     }
     const user = result.rows[0];
-    if (!bcrypt.compare(password, result.rows[0].password)) {
+    if (!await bcrypt.compare(password, user.password)) {
       return res.status(400).json({ error: 'Incorrect password' });
     } else {
       res.status(200).json({
@@ -116,7 +155,6 @@ app.post('/login', async (req, res) => {
         classification: user.classification
       });
     }
-
   } catch (error: any) {
     console.error('Error logging in:', error.message);
     res.status(500).json({ error: 'An error occurred while logging in' });
