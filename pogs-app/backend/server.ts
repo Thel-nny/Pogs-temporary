@@ -44,6 +44,16 @@ app.post('/signup', async (req, res) => {
   }
 });
 
+app.get('/userPogs', async (req, res) => {
+  try {
+     const { rows } = await pool.query('SELECT * FROM pogs');
+     res.json(rows);
+  } catch (error) {
+     console.error(error);
+     res.status(500).json({ message: 'Server error' });
+  }
+ });
+ 
 app.get('/userPogs/:userId', async (req, res) => {
   try {
     const client = await pool.connect()
