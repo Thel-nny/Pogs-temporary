@@ -13,7 +13,7 @@ type Pog = {
 
 const ChangePogsForm: React.FC = () => {
  const [currentData, setCurrentData] = useState<Pog | null>(null);
- const [showPriceInput, setShowPriceInput] = useState(false);
+ const [showPriceInput, setShowRandomPrice] = useState(false);
   const id = localStorage.getItem('id');
 
   useEffect(() => {
@@ -54,36 +54,16 @@ const ChangePogsForm: React.FC = () => {
           <div className='p-6 space-y-2 md:space-y-6 sm:p-8'>
             <h1 className='text-2xl font-bold leading-tight tracking-tight md:text-2xl'>Create Pogs</h1>
             <form className='space-y-4 md:space-y-6' onSubmit={handleSubmit}>
-              <label className='block mb-2 text-md font-medium text-gray-900'>Name of pog:
-                <span className='ml-2 text-gray-500'>{currentData?.name}</span>
+            <label className='block mb-2 text-md font-medium text-gray-900'> Input Pog ID <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-2' type="text" name="firstname"/>
               </label>
-              <label className='block mb-2 text-md font-medium text-gray-900'>Ticker Symbol:
-                <span className='ml-2 text-gray-500'>{currentData?.ticker_symbol}</span>
+              <label className='block mb-2 text-md font-medium text-gray-900'>Name of pog: <span className='ml-2 text-gray-500'>{currentData?.name}</span>
               </label>
-              <label className='block mb-2 text-md font-medium text-gray-900'>New Price:
-                {showPriceInput ? (
-                 <input
-                 className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-2'
-                 type="number"
-                 name="price"
-                 value={currentData?.price}
-                 onChange={(e) => {
-                    if (currentData) {
-                      setCurrentData({
-                        ...currentData,
-                        price: parseFloat(e.target.value),
-                      });
-                    }
-                 }}
-                />
-                ) : (
-                 <span className='ml-2 text-gray-500'>{currentData?.price}</span>
-                )}
+              <label className='block mb-2 text-md font-medium text-gray-900'>Ticker Symbol: <span className='ml-2 text-gray-500'>{currentData?.ticker_symbol}</span>
               </label>
               <label className='block mb-2 text-md font-medium text-gray-900'>Color:
                 <span className='ml-2 text-gray-500'>{currentData?.color}</span>
               </label>
-              <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="button" onClick={() => setShowPriceInput(!showPriceInput)}>Change Price</button>
+              <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="button" onClick={() => setShowRandomPrice(!showPriceInput)}>Change Price</button>
             </form>
           </div>
         </div>

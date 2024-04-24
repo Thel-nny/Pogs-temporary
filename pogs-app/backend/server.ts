@@ -66,6 +66,19 @@ app.get('/userPogs/:userId', async (req, res) => {
   }
 })
 
+app.get('/getUserDetails/:userId', async(req, res)=> {
+  try {
+    const client = await pool.connect()
+    const userId = req.params.userId
+    const result = await client.query('SELECT * FROM users WHERE id = $1', [userId])
+    console.log("UserId:" +  userId)
+    res.json(result.rows)
+    client.release()
+  } catch(error: any) {
+    console.log(error)
+  }
+})
+
 app.post('/pogsform', async (req, res) => {
   try {
     const client = await pool.connect();
@@ -122,6 +135,23 @@ app.get('/pogs/:id', async (req, res) => {
   }
 })
 
+app.patch('/changePrice', async(req, res) => {
+  try {
+    const {pogId} = req.query
+    const client = await pool.connect()
+    const result = await client.query('GET price FROM pogs WHERE id = $1 ', [pogId])
+    let randomizer = (Math.random() * 0.1) - 0.05;
+    let randomPercentage = randomizer * 100;
+    let newPrice = randomPercentage * result.rows[0] + result.rows[0]
+    const newQuery = await client.query('UPDATE pogs SET price = $1 WHERE pogId = $2', 
+    [newPrice, pogId])
+    client.release()
+    res.json({message: 'The price has been updated', newQuery})
+  } catch(error) {
+    console.error(error)
+  }
+})
+
 app.get('/sellPog', async (req, res) => {
   try {
     const { userId, pogId } = req.query;
@@ -148,28 +178,29 @@ app.get('/pogsForSale', async (req, res) => {
 })
 
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, classification } = req.body;
   try {
-    const client = await pool.connect();
-    const result = await client.query('SELECT id, email, password FROM users WHERE email = $1', [email]);
-    client.release();
-    if (result.rows[0].email !== email) {
-      return res.status(400).json({ error: 'User not found' });
-    }
-    const user = result.rows[0];
-    if (!await bcrypt.compare(password, user.password)) {
-      return res.status(400).json({ error: 'Incorrect password' });
-    } else {
-      res.status(200).json({
-        user: { id: user.id, email: user.email },
-        classification: user.classification
-      });
-    }
+     const client = await pool.connect();
+     const result = await client.query('SELECT id, email, password, classification FROM users WHERE email = $1', [email]);
+     client.release();
+     if (result.rows.length === 0) {
+       return res.status(400).json({ error: 'User not found' });
+     }
+     const user = result.rows[0];
+     console.log('User data from database:', user);
+     if (!await bcrypt.compare(password, user.password)) {
+       return res.status(400).json({ error: 'Incorrect password' });
+     } else {
+       res.status(200).json({
+         user: { id: user.id, email: user.email, classification: user.classification }
+       });
+     }
   } catch (error: any) {
-    console.error('Error logging in:', error.message);
-    res.status(500).json({ error: 'An error occurred while logging in' });
+     console.error('Error logging in:', error.message);
+     res.status(500).json({ error: 'An error occurred while logging in' });
   }
-});
+ });
+ 
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

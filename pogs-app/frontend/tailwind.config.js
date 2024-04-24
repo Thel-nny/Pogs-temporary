@@ -8,6 +8,7 @@ module.exports = {
     colors: {
       'white':'#f8fafc',
       'blue': '#1fb6ff',
+      'blue-dark': '#00008b',
       'purple': '#7e5bef',
       'pink': '#ff49db',
       'orange': '#ff7849',
@@ -54,6 +55,15 @@ module.exports = {
       ],
     },
     extend: {
+      animation: {
+        marquee: 'marquee 65s linear infinite'
+      },
+      keyframes: {
+          marquee: {
+            '0%': { transform: 'translateX(0%)' },
+            '100%': { transform: 'translateX(-100%)' },
+          },
+      },
       spacing: {
         '8xl': '96rem',
         '9xl': '128rem',
