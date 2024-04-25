@@ -1,6 +1,6 @@
 import LoginForm from './pages/login';
 import SignUpForm from './pages/signup';
-import Form from './pages/showpogs';
+import UserPogsPurchased from './pages/showUserPogs';
 import UserPogs from './pages/userPogs';
 import ChangePogsForm from './pages/adminSide';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -14,10 +14,10 @@ function App() {
         <Routes>
           <Route path='/login' element={<LoginForm />} />
           <Route path='/signup' element={<SignUpForm />} />
-          <Route path='/showpogs' element={<Form />} />
           <Route path='/pogsform' element={<PogsForm/>}/>
           <Route path='/userPogs' element={<UserPogs/>}/>
           <Route path='/changePogs' element={<ChangePogsForm/>}/>
+          <Route path='/showUserPogs' element={<UserPogsPurchased/>} />
         </Routes>
       </BrowserRouter>
  );

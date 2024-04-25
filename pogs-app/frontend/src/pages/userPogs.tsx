@@ -23,10 +23,11 @@ const UserPogs = () => {
   const [pogsForSale, setPogsForSale] = useState<Pog[]>([]);
   const [allPogs, setAllPogs] = useState<Pog[]>([]);
   const [allUsers, setUserDetails] = useState<User[]>([]);
+  const [purchasePog, setBoughtPogs] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(6);
   const user = localStorage.getItem('userId');
- 
+
   useEffect(() => {
     fetchUserPogs();
     fetchPogsForSale();
@@ -47,7 +48,7 @@ const UserPogs = () => {
     try {
       const response = await axios.get(`http://localhost:8080/userPogs/${user}`);
       setUserPogs(response.data);
-      console.log("User details:"+ response.data)
+      console.log("User details:" + response.data)
     } catch (error) {
       console.error('Error fetching user pogs:', error);
     }
@@ -81,44 +82,59 @@ const UserPogs = () => {
     }
   };
 
+  const buyPog = async (pogId: number) => {
+    try {
+      const response = await axios.post(`http://localhost:8080/buyPog`, { pogId, userId: user })
+      setBoughtPogs(response.data)
+      console.log('Your bought pog:' + response.data.name)
+      fetchUserPogs();
+      fetchPogsForSale();
+      fetchAllPogs();
+    } catch (error: any) {
+      console.error(error)
+    }
+  }
+
   const indexOfLastPog = (currentPage + 1) * itemsPerPage;
   const indexOfFirstPog = indexOfLastPog - itemsPerPage;
   const currentPogs = pogsForSale.slice(indexOfFirstPog, indexOfLastPog);
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
   return (
-    <section className='w-screen h-screen bg-gray-dark'>
+    <section className='md:h-screen sm:h-screen w-screen h-screen bg-gray-dark'>
       <div className='flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0'>
         <div className='w-full bg-white rounded-lg shadow'>
           <div className='p-6 space-y-4 md:space-y-6 sm:p-8'>
-            <div>
+            <div className='display: flex; flex-wrap: wrap;'>
               {
-                allUsers.map(users =>(
-                  <span key={users.id} className="text-4xl mx-4">
-                    <p>UserName: {users.firstname}</p>
-                    <p>User Classification:{users.classification}</p>
-                    <p>User Wallet: {users.wallet}</p>
-                  </span>
+                allUsers.map(users => (
+                  <ul key={users.id} className="display: flex;">
+                    <li className='text-lg px-3 py-2'>Name: {users.firstname}</li>
+                    <li className='text-lg px-3 py-2'>User Classification:{users.classification}</li>
+                    <li className='text-lg px-3 py-2'>User Wallet: {users.wallet}</li>
+                  </ul>
                 ))
               }
+              <button><a className='text-blue-dark hover:underline' href='/showUserPogs'>Show All Pogs Purchased</a></button>
             </div>
-          <h2 className="text-2xl font-bold mb-3">Pogs available</h2>
-          <div className='overflow-x-hidden whitespace-nowrap'>
-          <div className='py-6 animate-marquee'>
+            <h2 className="text-2xl font-bold mb-3">Pogs available</h2>
+            <div className='overflow-x-hidden whitespace-nowrap'>
+              <div className='py-6 animate-marquee'>
                 {allPogs.map(pog => (
                   <span key={pog.id} className="text-4xl mx-4">{pog.ticker_symbol}|{pog.previous_price}</span>
                 ))}
               </div>
-          </div>
-        <h3 className="text-2xl font-bold mb-3">Pogs for Sale:</h3>
+            </div>
+            <h3 className="text-2xl font-bold mb-3">Pogs for Sale:</h3>
             <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {currentPogs.map(pog => (
                 <li key={pog.id} className="bg-white p-4 rounded-lg shadow-lg transition-shadow duration-300 ease-in-out">
                   <div className="mb-2">
                     <h4 className="text-lg font-semibold text-gray-900">{pog.name} - {pog.ticker_symbol}</h4>
+                    <p className="text-gray-600">Current Price: ${pog.price}</p>
                     <p className="text-gray-600">Previous Price: ${pog.previous_price}</p>
                     <p className="text-gray-600">Color: <span style={{ color: pog.color }}>{pog.color}</span></p>
                   </div>
-                  <button onClick={() => sellPog(pog.id)} className="w-full text-white bg-blue hover:bg-gray-50 font-bold py-2 px-4 rounded">
+                  <button onClick={() => buyPog(pog.id)} className="w-full text-white bg-blue hover:bg-gray-50 font-bold py-2 px-4 rounded">
                     Buy this Pog
                   </button>
                 </li>

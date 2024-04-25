@@ -4,6 +4,8 @@ import pogs from "./routes"
 import bodyParser from 'body-parser';
 import { Pool } from 'pg';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
+
 const bcrypt = require('bcrypt');
 
 app.use(bodyParser.json());
@@ -11,7 +13,8 @@ app
   .use(express.static(__dirname))
   .use(express.json())
   .use(express.urlencoded({ extended: true }))
-  .use("/", pogs);
+  .use("/", pogs)
+  .use(cookieParser());
 
 const pool = new Pool({
   user: 'postgres',
@@ -66,12 +69,21 @@ app.get('/userPogs/:userId', async (req, res) => {
   }
 })
 
+app.get('/showUserPogs/:userId', async (req, res) =>{
+  try{
+    const client = await pool.connect();
+    const userId = req.params.userId
+    const result = await client.query('SELECT * FROM pogs WHERE  user_id = $1', [userId])
+    res.json(result.rows)
+  } catch(error: any) {
+    console.log(error)
+  }
+})
 app.get('/getUserDetails/:userId', async(req, res)=> {
   try {
     const client = await pool.connect()
     const userId = req.params.userId
     const result = await client.query('SELECT * FROM users WHERE id = $1', [userId])
-    console.log("UserId:" +  userId)
     res.json(result.rows)
     client.release()
   } catch(error: any) {
@@ -123,10 +135,10 @@ app.get('/pogs/:id', async (req, res) => {
 
  app.post('/buyPog', async (req, res) => {
   try {
-    const { pogId } = req.query
+    const { pogId, userId } = req.body
     const client = await pool.connect();
-    const result = await client.query('UPDATE pogs SET pogs.user_id = users.id WHERE id = $1',
-    [pogId]);
+    const result = await client.query('UPDATE pogs SET user_id = $1 WHERE id = $2',
+    [userId, pogId]);
     client.release();
     res.json({ message: 'The Pog has been purchased successfully.' , result});
   } catch (error) {
@@ -142,7 +154,7 @@ app.patch('/changePrice', async(req, res) => {
     const result = await client.query('GET price FROM pogs WHERE id = $1 ', [pogId])
     let randomizer = (Math.random() * 0.1) - 0.05;
     let randomPercentage = randomizer * 100;
-    let newPrice = randomPercentage * result.rows[0] + result.rows[0]
+    let newPrice = randomPercentage * result.rows[0].price + result.rows[0].price
     const newQuery = await client.query('UPDATE pogs SET price = $1 WHERE pogId = $2', 
     [newPrice, pogId])
     client.release()
@@ -154,7 +166,7 @@ app.patch('/changePrice', async(req, res) => {
 
 app.get('/sellPog', async (req, res) => {
   try {
-    const { userId, pogId } = req.query;
+    const { pogId } = req.query;
     const client = await pool.connect();
     const result = await client.query('UPDATE pogs SET user_id = null WHERE id = $1',
     [pogId]);
@@ -177,7 +189,7 @@ app.get('/pogsForSale', async (req, res) => {
   }
 })
 
-app.post('/login', async (req, res) => {
+app.post('/login', async (req, res) => { //fix logic for login
   const { email, password, classification } = req.body;
   try {
      const client = await pool.connect();
