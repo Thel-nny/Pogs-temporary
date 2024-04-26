@@ -3,7 +3,7 @@ import SignUpForm from './pages/signup';
 import UserPogsPurchased from './pages/showUserPogs';
 import UserPogs from './pages/userPogs';
 import ChangePogsForm from './pages/adminSide';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route} from 'react-router-dom';
 import './App.css';
 import PogsForm from './pages/pogsform';
 

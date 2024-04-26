@@ -28,6 +28,7 @@ const LoginForm: React.FC = () => {
  const handleLogin = async (email: string, password: string, classification: string) => {
   try {
      const response = await axios.post('http://localhost:8080/login', {email, password, classification})
+     console.log(response.data)
      if (response.status === 200) {
        localStorage.setItem('userId', response.data.user.id);
        if (response.data.user.classification === 'user') {

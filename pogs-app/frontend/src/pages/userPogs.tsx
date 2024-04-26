@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 interface Pog {
@@ -18,6 +19,7 @@ interface User {
   classification: string
 }
 
+
 const UserPogs = () => {
   const [userPogs, setUserPogs] = useState<Pog[]>([]);
   const [pogsForSale, setPogsForSale] = useState<Pog[]>([]);
@@ -25,15 +27,10 @@ const UserPogs = () => {
   const [allUsers, setUserDetails] = useState<User[]>([]);
   const [purchasePog, setBoughtPogs] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage] = useState(6);
+  const [quantities, setQuantities] = useState<number[]>([]);
+  const [itemsPerPage] = useState(3);
   const user = localStorage.getItem('userId');
 
-  useEffect(() => {
-    fetchUserPogs();
-    fetchPogsForSale();
-    fetchAllPogs();
-    userDetails()
-  }, []);
 
   const fetchAllPogs = async () => {
     try {
@@ -48,7 +45,6 @@ const UserPogs = () => {
     try {
       const response = await axios.get(`http://localhost:8080/userPogs/${user}`);
       setUserPogs(response.data);
-      console.log("User details:" + response.data)
     } catch (error) {
       console.error('Error fetching user pogs:', error);
     }
@@ -63,16 +59,6 @@ const UserPogs = () => {
     }
   };
 
-  const sellPog = async (pogId: number) => {
-    try {
-      await axios.post(`http://localhost:8080/sellPog`, { userId: user, pogId });
-      fetchUserPogs();
-      fetchPogsForSale();
-    } catch (error) {
-      console.error('Error selling pog:', error);
-    }
-  };
-
   const userDetails = async () => {
     try {
       const response = await axios.get(`http://localhost:8080/getUserDetails/${user}`)
@@ -82,18 +68,45 @@ const UserPogs = () => {
     }
   };
 
-  const buyPog = async (pogId: number) => {
+  const handleAddQuantity = (index: number) => {
+    setQuantities(prevQuantities => {
+       const newQuantities = [...prevQuantities];
+       newQuantities[index] = (newQuantities[index] || 0) + 1; // Ensure it's a number before incrementing
+       return newQuantities;
+    });
+   };
+
+   const handleMinusQuantity = (index: number) => {
+    setQuantities(prevQuantities => {
+       const newQuantities = [...prevQuantities];
+       newQuantities[index] = Math.max((newQuantities[index] || 0) - 1, 0); // Ensure it's a number and not less than 0
+       return newQuantities;
+    });
+   };
+
+  const buyPog = async (pogs_id: number, quantity:number) => {
     try {
-      const response = await axios.post(`http://localhost:8080/buyPog`, { pogId, userId: user })
+      console.log("Pogs ID: "+ pogs_id)//change logic to get quantity
+      const response = await axios.post(`http://localhost:8080/buyPogs`, { pogs_id, user_id: user, quantity})
       setBoughtPogs(response.data)
-      console.log('Your bought pog:' + response.data.name)
+      console.log('Your purchased Pog' + response.data.id)
       fetchUserPogs();
       fetchPogsForSale();
       fetchAllPogs();
     } catch (error: any) {
-      console.error(error)
+      if (error.response && error.response.status === 400) {
+        alert('Insufficient Balance')
+      }
+      console.error('Error buying pog:', error);
     }
   }
+
+  useEffect(() => {
+    fetchUserPogs();
+    fetchPogsForSale();
+    fetchAllPogs();
+    userDetails()
+  }, [purchasePog]);
 
   const indexOfLastPog = (currentPage + 1) * itemsPerPage;
   const indexOfFirstPog = indexOfLastPog - itemsPerPage;
@@ -106,37 +119,53 @@ const UserPogs = () => {
           <div className='p-6 space-y-4 md:space-y-6 sm:p-8'>
             <div className='display: flex; flex-wrap: wrap;'>
               {
-                allUsers.map(users => (
-                  <ul key={users.id} className="display: flex;">
+                allUsers.map((users, index) => (
+                  <ul key={index} className="display: flex flex-row ;">
                     <li className='text-lg px-3 py-2'>Name: {users.firstname}</li>
-                    <li className='text-lg px-3 py-2'>User Classification:{users.classification}</li>
+                    <li className='text-lg px-3 py-2'>User Classification: {users.classification}</li>
                     <li className='text-lg px-3 py-2'>User Wallet: {users.wallet}</li>
                   </ul>
                 ))
               }
-              <button><a className='text-blue-dark hover:underline' href='/showUserPogs'>Show All Pogs Purchased</a></button>
-            </div>
-            <h2 className="text-2xl font-bold mb-3">Pogs available</h2>
-            <div className='overflow-x-hidden whitespace-nowrap'>
-              <div className='py-6 animate-marquee'>
+              <button><Link to="/showUserPogs">Show All Pogs Purchased</Link></button>
+              <h2 className="text-2xl font-bold mb-3">Pogs available</h2>
+            <div className='w-full relative flex overflow-x-hidden'>
+              <div className='py-2 animate-marquee'>
                 {allPogs.map(pog => (
-                  <span key={pog.id} className="text-4xl mx-4">{pog.ticker_symbol}|{pog.previous_price}</span>
+                  <span key={pog.id} className="text-xl mx-2">{pog.ticker_symbol}|{pog.previous_price}</span>
                 ))}
               </div>
+              <div className='"absolute top-0 py-2 animate-marquee2 whitespace-nowrap'>
+              <div className='py-2 animate-marquee2'>
+                {allPogs.map(pog => (
+                  <span key={pog.id} className="text-xl mx-2">{pog.ticker_symbol}|{pog.previous_price}</span>
+                ))}
+              </div>
+              </div>
             </div>
-            <h3 className="text-2xl font-bold mb-3">Pogs for Sale:</h3>
+            </div>
+            <h1 className="text-2xl font-bold mb-3">Pogs for Sale:</h1>
             <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {currentPogs.map(pog => (
-                <li key={pog.id} className="bg-white p-4 rounded-lg shadow-lg transition-shadow duration-300 ease-in-out">
+              {currentPogs.map((pog, index) => (
+                <li key={index} className="bg-white p-4 rounded-lg shadow-lg transition-shadow duration-300 ease-in-out">
                   <div className="mb-2">
-                    <h4 className="text-lg font-semibold text-gray-900">{pog.name} - {pog.ticker_symbol}</h4>
+                    <h4 className="text-lg font-semibold text-gray-900"><span style={{ color: pog.color }}>{pog.name} - {pog.ticker_symbol}</span></h4>
                     <p className="text-gray-600">Current Price: ${pog.price}</p>
                     <p className="text-gray-600">Previous Price: ${pog.previous_price}</p>
                     <p className="text-gray-600">Color: <span style={{ color: pog.color }}>{pog.color}</span></p>
                   </div>
-                  <button onClick={() => buyPog(pog.id)} className="w-full text-white bg-blue hover:bg-gray-50 font-bold py-2 px-4 rounded">
-                    Buy this Pog
-                  </button>
+                  <div className="flex justify-center space-x-2">
+                        <button onClick={() => handleMinusQuantity(index)} className="px-2 py-1 border rounded-lg bg-gray-200 hover:bg-gray-300">
+                            -
+                        </button>
+                        <span>{quantities[index] || 1}</span> 
+                        <button onClick={() => handleAddQuantity(index)} className="px-2 py-1 border rounded-lg bg-gray-200 hover:bg-gray-300">
+                            +
+                        </button>
+                      </div>
+                      <button onClick={() => buyPog(pog.id, quantities[index] || 1 )} className="w-full text-white bg-blue hover:bg-gray-50 font-bold py-2 px-4 rounded">
+                         Buy this Pog
+                        </button>
                 </li>
               ))}
             </ul>

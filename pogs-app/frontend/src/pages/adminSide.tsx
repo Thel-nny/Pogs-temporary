@@ -47,12 +47,23 @@ const ChangePogsForm: React.FC = () => {
     }
  };
 
+ const handleDeletePog = async () =>{
+  if(id){
+    try{
+      const response = await axios.delete(`http://localhost:8080/ChangePogsForm/${id}`)
+      console.log(response.data);
+    }catch (error) {
+      console.error('There was a problem with the axios operation:', error);
+    }
+  }
+ }
  return (
     <section className='w-full h-screen bg-primary-100 dark:bg-gray-900'>
       <div className='flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0'>
         <div className='w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700'>
           <div className='p-6 space-y-2 md:space-y-6 sm:p-8'>
             <h1 className='text-2xl font-bold leading-tight tracking-tight md:text-2xl'>Create Pogs</h1>
+            <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="button" onClick={handleDeletePog}>DELETE</button>
             <form className='space-y-4 md:space-y-6' onSubmit={handleSubmit}>
             <label className='block mb-2 text-md font-medium text-gray-900'> Input Pog ID <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-2' type="text" name="firstname"/>
               </label>
