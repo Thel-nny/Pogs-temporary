@@ -34,7 +34,7 @@ const LoginForm: React.FC = () => {
        if (response.data.user.classification === 'user') {
          navigate(`/userPogs`);
        } else if (response.data.user.classification === 'admin') {
-         navigate(`/changePogs`);
+         navigate(`/adminSide`);
        }
      } else {
        alert('Login failed.');

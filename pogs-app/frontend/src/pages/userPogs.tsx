@@ -127,21 +127,19 @@ const UserPogs = () => {
                   </ul>
                 ))
               }
-              <button><Link to="/showUserPogs">Show All Pogs Purchased</Link></button>
-              <h2 className="text-2xl font-bold mb-3">Pogs available</h2>
-            <div className='w-full relative flex overflow-x-hidden'>
-              <div className='py-2 animate-marquee'>
-                {allPogs.map(pog => (
-                  <span key={pog.id} className="text-xl mx-2">{pog.ticker_symbol}|{pog.previous_price}</span>
-                ))}
-              </div>
-              <div className='"absolute top-0 py-2 animate-marquee2 whitespace-nowrap'>
-              <div className='py-2 animate-marquee2'>
-                {allPogs.map(pog => (
-                  <span key={pog.id} className="text-xl mx-2">{pog.ticker_symbol}|{pog.previous_price}</span>
-                ))}
-              </div>
-              </div>
+              <button className="w-50 h-10 text-white bg-blue hover:bg-red-600 font-bold py-2 px-4 rounded"><Link to="/showUserPogs">Show All Pogs Purchased</Link></button>
+              <h2 className="mt-2 text-2xl font-bold mb-3">Pogs available</h2>
+              <div className='w-full relative flex overflow-x-hidden'>
+                <div className='py-2 animate-marquee'>
+                    {allPogs.map(pog => (
+                      <span key={pog.id} className="text-xl mx-2">{pog.ticker_symbol}|{pog.previous_price}</span>
+                    ))}
+                </div>
+                <div className='py-2 animate-marquee2 whitespace-nowrap'>
+                    {allPogs.map(pog => (
+                      <span key={pog.id} className="text-xl mx-2">{pog.ticker_symbol}|{pog.previous_price}</span>
+                    ))}
+                </div>
             </div>
             </div>
             <h1 className="text-2xl font-bold mb-3">Pogs for Sale:</h1>

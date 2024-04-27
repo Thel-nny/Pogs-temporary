@@ -1,81 +1,158 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
+import './pages.css'
+interface Pog {
+  id: number;
+  name: string;
+  ticker_symbol: string;
+  price: number;
+  color: string;
+  user_id: number;
+  previous_price: number;
+}
 
-// Define the type for the form state
-type Pog = {
- id: number;
- name: string;
- ticker_symbol: string;
- price: number;
- color: string;
- previous_price: number;
-};
+interface Admin {
+  id: number,
+  firstname: string,
+  wallet: number,
+  classification: string
+}
 
-const ChangePogsForm: React.FC = () => {
- const [currentData, setCurrentData] = useState<Pog | null>(null);
- const [showPriceInput, setShowRandomPrice] = useState(false);
-  const id = localStorage.getItem('id');
+const AdminSide = () => {
+  const [pogsForSale, setPogsForSale] = useState<Pog[]>([]);
+  const [allPogs, setAllPogs] = useState<Pog[]>([]);
+  const [allUsers, setUserDetails] = useState<Admin[]>([]);
+  const [purchasePog, setBoughtPogs] = useState<Admin[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [itemsPerPage] = useState(4);
+  const user = localStorage.getItem('userId');
 
-  useEffect(() => {
-   if (id) {
-      const fetchCurrentData = async () => {
-        try {
-          const response = await axios.get(`http://localhost:8080/pogs/${id}`);
-          setCurrentData(response.data);
-        } catch (error) {
-          console.error('Failed to fetch current data:', error);
-        }
-      };
-  
-      fetchCurrentData();
-   }
-  }, [id]); // Add pogs as a dependency to re-run the effect if it changes
-  
 
- // Handler for form submission
- const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const fetchAllPogs = async () => {
     try {
-      const response = await axios.post('http://localhost:8080/ChangePogsForm', { price: currentData?.price }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      console.log(response.data);
+      const response = await axios.get(`http://localhost:8080/userPogs`);
+      setAllPogs(response.data);
     } catch (error) {
-      console.error('There was a problem with the axios operation:', error);
+      console.error('Error fetching all pogs:', error);
     }
- };
+  };
 
- const handleDeletePog = async () =>{
-  if(id){
-    try{
-      const response = await axios.delete(`http://localhost:8080/ChangePogsForm/${id}`)
-      console.log(response.data);
+
+  const fetchPogsForSale = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8080/pogsForSale`);
+      setPogsForSale(response.data);
+    } catch (error) {
+      console.error('Error fetching pogs for sale:', error);
+    }
+  };
+
+  const userDetails = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8080/getUserDetails/${user}`)
+      setUserDetails(response.data);
+    } catch (error) {
+      console.error('Error fetching pogs for sale:', error);
+    }
+  };
+
+  const DeletePog = async (pogId: number) => {
+    try {
+      await axios.delete(`http://localhost:8080/adminSide/${pogId}`);
+      fetchAllPogs();
+      fetchPogsForSale();
+    } catch (error) {
+      console.error('Error deleting pog:', error);
+    }
+  };
+
+  const changePrice = async () => {
+    try {
+      await axios.patch('http://localhost:8080/changePrice')
+      fetchAllPogs()
+      fetchPogsForSale()
+      alert('Price changed')
     }catch (error) {
-      console.error('There was a problem with the axios operation:', error);
+      console.error('Error changing price:', error);
     }
   }
- }
- return (
-    <section className='w-full h-screen bg-primary-100 dark:bg-gray-900'>
+
+  useEffect(() => {
+    fetchPogsForSale();
+    fetchAllPogs();
+    userDetails()
+  }, [purchasePog]);
+
+  const indexOfLastPog = (currentPage + 1) * itemsPerPage;
+  const indexOfFirstPog = indexOfLastPog - itemsPerPage;
+  const currentPogs = pogsForSale.slice(indexOfFirstPog, indexOfLastPog);
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  return (
+    <section className='md:h-screen sm:h-screen w-screen h-screen bg-gray-Dark'>
       <div className='flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0'>
-        <div className='w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700'>
-          <div className='p-6 space-y-2 md:space-y-6 sm:p-8'>
-            <h1 className='text-2xl font-bold leading-tight tracking-tight md:text-2xl'>Create Pogs</h1>
-            <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="button" onClick={handleDeletePog}>DELETE</button>
-            <form className='space-y-4 md:space-y-6' onSubmit={handleSubmit}>
-            <label className='block mb-2 text-md font-medium text-gray-900'> Input Pog ID <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-2' type="text" name="firstname"/>
-              </label>
-              <label className='block mb-2 text-md font-medium text-gray-900'>Name of pog: <span className='ml-2 text-gray-500'>{currentData?.name}</span>
-              </label>
-              <label className='block mb-2 text-md font-medium text-gray-900'>Ticker Symbol: <span className='ml-2 text-gray-500'>{currentData?.ticker_symbol}</span>
-              </label>
-              <label className='block mb-2 text-md font-medium text-gray-900'>Color:
-                <span className='ml-2 text-gray-500'>{currentData?.color}</span>
-              </label>
-              <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="button" onClick={() => setShowRandomPrice(!showPriceInput)}>Change Price</button>
-            </form>
+        <div className='w-full bg-white rounded-lg shadow'>
+          <div className='p-6 space-y-4 md:space-y-6 sm:p-8'>
+            <div className='flex flex-wrap'>
+              {
+                allUsers.map((users, index) => (
+                 <ul key={index} className="flex flex-row">
+                    <li className='text-lg font-bold px-3 py-2'>Name: {users.firstname}</li>
+                    <li className='text-lg font-bold ml-5 px-3 py-2'>User Classification: {users.classification}</li>
+                 </ul>
+                ))
+              }
+              <div className='flex justify-between items-center w-full'>
+                <button className="w-auto h-10 text-white bg-blue font-bold py-2 px-4 rounded">
+                    <Link to="/pogsform">Create New Pogs</Link>
+                </button>
+                <button className="w-auto h-10 text-white bg-blue font-bold py-2 px-4 rounded" onClick={changePrice}>
+                    Trigger Price Change
+                </button>
+                <button className="w-auto h-10 text-white bg-blue hover:bg-red font-bold py-2 px-4 rounded" onClick={changePrice}>
+                    Log Out
+                </button>
+              </div>
+              <h2 className="mt-2 text-2xl font-bold mb-3">Pogs available</h2>
+              <div className='w-full relative flex overflow-x-hidden'>
+                <div className='py-2 animate-marquee'>
+                    {allPogs.map(pog => (
+                      <span key={pog.id} className="text-xl mx-2">{pog.ticker_symbol}|{pog.previous_price}</span>
+                    ))}
+                </div>
+                <div className='py-2 animate-marquee2 whitespace-nowrap'>
+                    {allPogs.map(pog => (
+                      <span key={pog.id} className="text-xl mx-2">{pog.ticker_symbol}|{pog.previous_price}</span>
+                    ))}
+                </div>
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold mb-3">Pogs for Sale:</h1>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {currentPogs.map((pog, index) => (
+                <li key={index} className="bg-white p-2 sm:p-4 rounded-lg shadow-lg transition-shadow duration-300 ease-in-out">
+                 <div className="mb-2">
+                 <h4 className="text-sm sm:text-lg font-semibold text-gray-900"><span style={{ color: pog.color }}>{pog.name} - {pog.ticker_symbol}</span></h4>
+                    <p className="text-gray-600">Pog Id: {pog.id}</p>
+                    <p className="text-gray-600">Current Price: ${pog.price}</p>
+                    <p className="text-gray-600">Previous Price: ${pog.previous_price}</p>
+                    <p className="text-gray-600">Color: <span style={{ color: pog.color }}>{pog.color}</span></p>
+                 </div>
+                 <button onClick={() => DeletePog(pog.id)} className="button"> Delete </button> 
+                      <button className="w-full sm:w-auto text-white bg-blue hover:bg-gray-50 font-bold py-2 px-4 rounded"><Link to="/updatepogs">
+                         Edit this Pog
+                         </Link>
+                        </button>
+                </li>
+              ))}
+            </ul>
+            <div className="flex justify-center space-x-4">
+              {Array.from({ length: Math.ceil(pogsForSale.length / itemsPerPage) }, (_, i) => (
+                <button key={i} onClick={() => paginate(i)} className="px-4 py-2 border rounded-lg bg-primary-400 text-white hover:bg-primary-500">
+                 {i + 1}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -83,4 +160,4 @@ const ChangePogsForm: React.FC = () => {
  );
 };
 
-export default ChangePogsForm;
+export default AdminSide;

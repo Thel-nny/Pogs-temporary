@@ -9,7 +9,6 @@ import cookieParser from 'cookie-parser';
 const bcrypt = require('bcrypt');
 export const app = express();
 
-
 app.use(bodyParser.json());
 app
   .use(express.static(__dirname))
@@ -75,84 +74,62 @@ app.post('/pogsform', async (req, res) => {
   try {
     const client = await pool.connect();
     const { name, ticker_symbol, price, color } = req.body;
-    const result = await client.query('INSERT INTO pogs (name, ticker_symbol, price, color) VALUES ($1, $2, $3, $4) RETURNING *',
+    const result = await client.query('INSERT INTO pogs (name, ticker_symbol, price, color, previous_price) VALUES ($1, $2, $3, $4, 0) RETURNING *',
       [name, ticker_symbol, price, color]);
     client.release();
     console.log('Pogs submitted successfully', result.rows[0]);
-    return res.json({ message: 'Pogs submitted successfully' });
+    return res.status(200).json({ message: 'Pogs submitted successfully' });
   } catch (error) {
     console.error('Error creating pog:', error);
     res.status(500).json({ error: 'An error occurred while creating pog' });
   }
 });
 
-app.get('/pogs/:id', async (req, res) => {
-  try {
-    const client = await pool.connect();
-    const { rows } = await client.query('SELECT * FROM pogs WHERE id = $1', [req.params.id]);
-    client.release();
-    if (!rows.length) {
-      return res.status(404).json({ message: 'Pog not found' });
-    }
-    return res.json(rows[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-app.put('/pogs/:id', async (req, res) => {
-  try {
-    const client = await pool.connect();
-    const { rows } = await client.query('UPDATE pogs SET price = $1 WHERE id = $2 RETURNING *',
-      [req.body.price, req.params.id]);
-    client.release();
-    if (!rows.length) {
-      return res.status(404).json({ message: 'Pog not found' });
-    }
-    return res.json(rows[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 app.patch('/changePrice', async (req, res) => {
   try {
-    const { pogId } = req.query
-    const client = await pool.connect()
-    const result = await client.query('SELECT price FROM pogs WHERE id = $1 ', [pogId])
-    let randomizer = (Math.random() * 0.1) - 0.05;
-    let randomPercentage = randomizer * 100;
-    let newPrice = randomPercentage * result.rows[0].price + result.rows[0].price
-    const newQuery = await client.query('UPDATE pogs SET price = $1 WHERE pogId = $2',
-      [newPrice, pogId])
-    client.release()
-    return res.json({ message: 'The price has been updated', newQuery })
-  } catch (error) {
-    console.error(error)
-  }
-})
+    const client = await pool.connect();
+    const result = await client.query('SELECT * FROM pogs');
+    const pogPrices = result.rows;
+    await Promise.all(pogPrices.map(async (pog) => {
+      let randomizer = (Math.random() * 0.1) - 0.05;
+      let randomPercentage = randomizer * 100;
+      let newPrice = Math.round(pog.price * (1 + (randomPercentage / 100)));
+      await client.query('UPDATE pogs SET previous_price = $1 WHERE id = $2', [pog.price, pog.id]);
+      await client.query('UPDATE pogs SET price = $1 WHERE id = $2', [newPrice, pog.id]);
+    }));
 
-app.delete('ChangePogsForm/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-    const client = await pool.connect()
-    const result = await client.query('DELETE FROM pogs where id =$1', [id])
-    client.release()
-    return res.json(result.rows)
-  } catch (error: any) {
-    console.error('', error)
+    client.release();
+    return res.json({ message: 'The prices have been updated' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'An error occurred while updating prices' });
   }
-})
+});
+
+
+app.delete('/adminSide/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const client = await pool.connect();
+    const result = await client.query('DELETE FROM pogs WHERE id = $1 RETURNING *', [id]);
+    client.release();
+    if (result.rows.length > 0) {
+      res.json(result.rows);
+    } else {
+      res.status(404).json({ message: 'Pog not found' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error });
+  }
+});
 
 app.get('/userPogs', async (req, res) => {
   try {
-    console.log('hays')
     const client = await pool.connect();
     const { rows } = await client.query('SELECT * FROM pogs');
     client.release();
-    console.log(rows, 'haaaaaaa')
+    console.log(rows)
     return res.json(rows);
   } catch (error) {
     console.error(error);
@@ -160,17 +137,7 @@ app.get('/userPogs', async (req, res) => {
   }
 });
 
-app.get('/userPogs/:userId', async (req, res) => {
-  try {
-    const client = await pool.connect()
-    const userId = req.params.userId
-    const result = await client.query('SELECT * FROM pogs INNER JOIN users ON users.id = pogs.user_id WHERE pogs.user_id = $1', [userId])
-    client.release()
-    return res.json(result.rows)
-  } catch (error: any) {
-    console.error('', error)
-  }
-})
+
 
 app.get('/showUserPogs/:userId', async (req, res) => {
   try {
@@ -188,6 +155,22 @@ app.get('/showUserPogs/:userId', async (req, res) => {
   }
 })
 
+app.put('/editPogs/:id', async (req, res) => {
+  const { id, name, ticker_symbol, color } = req.body;
+  try {
+    const client = await pool.connect();
+    const result = await client.query(
+      `UPDATE pogs SET name = $1, ticker_symbol = 
+        $2, color = $3 WHERE id = $4`,
+      [name, ticker_symbol, color, id]
+    );
+    console.log(result.rows)
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Database connection error:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
 app.get('/getUserDetails/:userId', async (req, res) => {
   try {
     const client = await pool.connect()
@@ -214,30 +197,33 @@ app.post('/sellPog', async (req, res) => {
     }
     const cart = await client.query('SELECT * FROM carts WHERE user_id = $1 AND pog_id = $2', [user_id, pogs_id])
     const newQuantity = cart.rows[0].quantity - quantity
-    if (newQuantity <= 0) {
-      return res.status(400).send({error:'Quantity of Pogs has reached 0.'})
+    const newBalance = Number(user.rows[0].wallet) + Number(pog.rows[0].price * quantity)
+    if (cart.rows[0].quantity <= 1) {
+      await client.query('DELETE FROM carts WHERE user_id = $1 AND pog_id = $2', [user_id, pogs_id])
+      console.log("New Balance: " + newBalance)
+      await client.query('UPDATE users SET wallet = $1 WHERE id = $2', [newBalance, user_id])
+      return res.status(200).json({ message: 'Pog removed due to quantity reaching 0.', removed: true });
     }
     const update = await client.query('UPDATE carts SET quantity = $1 WHERE user_id = $2 AND pog_id = $3 RETURNING *', [newQuantity, user_id, pogs_id])
-    const newBalance = Number(user.rows[0].wallet) + Number((pog.rows[0].price * quantity))
-    console.log("New Balance: "+ newBalance)
+    console.log("New Balance: " + newBalance)
     await client.query('UPDATE users SET wallet = $1 WHERE id = $2', [newBalance, user_id])
     return res.status(201).json(update.rows)
-    //another if else statement na di siya pwede ka buy pogs if iya money is kulang
   } catch (error) {
     console.error(error)
   }
 });
 
-app.get('/pogsForSale', async (req, res) => {
+app.get('/pogsForSale', async (req, res) => { //shows pogs for sale on user side
   try {
     const client = await pool.connect()
-    const result = await client.query('SELECT * FROM pogs WHERE user_id IS NULL')
+    const result = await client.query('SELECT * FROM pogs')
     client.release()
     return res.json(result.rows)
   } catch (error: any) {
     console.error('', error)
   }
 })
+
 
 app.post('/buyPogs', async (req, res) => {
   try {
@@ -252,7 +238,7 @@ app.post('/buyPogs', async (req, res) => {
       return res.status(404).json({ error: 'Pog not found.' })
     }
     const totalCost = pog.rows[0].price * quantity
-    if(totalCost > user.rows[0].wallet){
+    if (totalCost > user.rows[0].wallet) {
       return res.status(400).send({ error: 'Insufficient Balance' })
     }
     const cart = await client.query('SELECT * FROM carts WHERE user_id = $1 AND pog_id = $2', [user_id, pogs_id])

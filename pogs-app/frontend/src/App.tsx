@@ -2,7 +2,8 @@ import LoginForm from './pages/login';
 import SignUpForm from './pages/signup';
 import UserPogsPurchased from './pages/showUserPogs';
 import UserPogs from './pages/userPogs';
-import ChangePogsForm from './pages/adminSide';
+import AdminSide from './pages/adminSide';
+import ChangePogsForm from './pages/updatepogs'
 import { BrowserRouter, Routes, Route} from 'react-router-dom';
 import './App.css';
 import PogsForm from './pages/pogsform';
@@ -16,8 +17,9 @@ function App() {
           <Route path='/signup' element={<SignUpForm />} />
           <Route path='/pogsform' element={<PogsForm/>}/>
           <Route path='/userPogs' element={<UserPogs/>}/>
-          <Route path='/changePogs' element={<ChangePogsForm/>}/>
+          <Route path='/adminSide' element={<AdminSide/>}/>
           <Route path='/showUserPogs' element={<UserPogsPurchased/>} />
+          <Route path='/updatepogs' element={<ChangePogsForm/>} />
         </Routes>
       </BrowserRouter>
  );
