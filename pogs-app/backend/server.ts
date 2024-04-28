@@ -137,7 +137,22 @@ app.get('/userPogs', async (req, res) => {
   }
 });
 
-
+app.get('/getUserDetails/:userId', async (req, res) => {
+  try {
+     const client = await pool.connect();
+     const userId = req.params.userId;
+     const result = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
+     client.release();
+     if (result.rows.length > 0) {
+       return res.json(result.rows);
+     } else {
+       return res.status(404).json({ message: 'User not found' });
+     }
+  } catch (error) {
+     console.error('Error fetching user details:', error);
+     return res.status(500).json({ message: 'Server error' });
+  }
+ });
 
 app.get('/showUserPogs/:userId', async (req, res) => {
   try {
@@ -171,17 +186,7 @@ app.put('/editPogs/:id', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
-app.get('/getUserDetails/:userId', async (req, res) => {
-  try {
-    const client = await pool.connect()
-    const userId = req.params.userId
-    const result = await client.query('SELECT * FROM users WHERE id = $1', [userId])//change query
-    client.release()
-    return res.json(result.rows)
-  } catch (error: any) {
-    console.log(error)
-  }
-})
+
 
 app.post('/sellPog', async (req, res) => {
   try {

@@ -59,9 +59,6 @@ const LoginForm: React.FC = () => {
         </label>
         <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="submit">Login</button>
         <a className='text-blue-dark hover:underline' href='/signup'>Don't have an account? Make a new one</a>
-        <label className='py-2 block mb-2 text-md font-medium text-gray-900'>
-        Classification: <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-4' type="text" name="classification" value={formData.classification} onChange={handleInputChange} />
-      </label>
       <br />
     </form>
       </div>

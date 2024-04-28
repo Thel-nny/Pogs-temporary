@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './pages.css'
 interface Pog {
@@ -28,6 +28,18 @@ const AdminSide = () => {
   const [itemsPerPage] = useState(4);
   const user = localStorage.getItem('userId');
 
+  const indexOfLastPog = (currentPage + 1) * itemsPerPage;
+  const indexOfFirstPog = indexOfLastPog - itemsPerPage;
+  const currentPogs = pogsForSale.slice(indexOfFirstPog, indexOfLastPog);
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const navigate = useNavigate(); 
+  const logout = () => {
+    // Clear the local storage data
+    localStorage.clear();
+    // Optionally, redirect the user to the login page
+    navigate('/login');
+ };
 
   const fetchAllPogs = async () => {
     try {
@@ -84,10 +96,6 @@ const AdminSide = () => {
     userDetails()
   }, [purchasePog]);
 
-  const indexOfLastPog = (currentPage + 1) * itemsPerPage;
-  const indexOfFirstPog = indexOfLastPog - itemsPerPage;
-  const currentPogs = pogsForSale.slice(indexOfFirstPog, indexOfLastPog);
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
   return (
     <section className='md:h-screen sm:h-screen w-screen h-screen bg-gray-Dark'>
       <div className='flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0'>
@@ -109,8 +117,8 @@ const AdminSide = () => {
                 <button className="w-auto h-10 text-white bg-blue font-bold py-2 px-4 rounded" onClick={changePrice}>
                     Trigger Price Change
                 </button>
-                <button className="w-auto h-10 text-white bg-blue hover:bg-red font-bold py-2 px-4 rounded" onClick={changePrice}>
-                    Log Out
+                <button className="ml-4 w-auto h-10 text-white bg-blue hover:bg-red font-bold py-2 px-4 rounded" onClick={logout}>
+                  Log Out
                 </button>
               </div>
               <h2 className="mt-2 text-2xl font-bold mb-3">Pogs available</h2>

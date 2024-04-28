@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 interface Pog {
@@ -31,24 +31,29 @@ const UserPogs = () => {
   const [itemsPerPage] = useState(3);
   const user = localStorage.getItem('userId');
 
+  const indexOfLastPog = (currentPage + 1) * itemsPerPage;
+  const indexOfFirstPog = indexOfLastPog - itemsPerPage;
+  const currentPogs = pogsForSale.slice(indexOfFirstPog, indexOfLastPog);
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  const fetchAllPogs = async () => {
-    try {
-      const response = await axios.get(`http://localhost:8080/userPogs`);
-      setAllPogs(response.data);
-    } catch (error) {
-      console.error('Error fetching all pogs:', error);
-    }
-  };
+  const navigate = useNavigate(); 
+  const logout = () => {
+    // Clear the local storage data
+    localStorage.clear();
+    // Optionally, redirect the user to the login page
+    navigate('/login');
+ };
 
-  const fetchUserPogs = async () => {
-    try {
-      const response = await axios.get(`http://localhost:8080/userPogs/${user}`);
-      setUserPogs(response.data);
-    } catch (error) {
-      console.error('Error fetching user pogs:', error);
-    }
-  };
+ const fetchAllPogs = async () => {
+  try {
+     const response = await axios.get(`http://localhost:8080/userPogs`);
+     setAllPogs(response.data);
+  } catch (error) {
+     console.error('Error fetching all pogs:', error);
+     // Optionally, set an error state to display a message to the user
+  }
+ };
+ 
 
   const fetchPogsForSale = async () => {
     try {
@@ -61,12 +66,13 @@ const UserPogs = () => {
 
   const userDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/getUserDetails/${user}`)
-      setUserDetails(response.data);
+       const response = await axios.get(`http://localhost:8080/getUserDetails/${user}`);
+       setUserDetails(response.data);
     } catch (error) {
-      console.error('Error fetching pogs for sale:', error);
+       console.error('Error fetching user details:', error);
     }
-  };
+   };
+   
 
   const handleAddQuantity = (index: number) => {
     setQuantities(prevQuantities => {
@@ -90,7 +96,7 @@ const UserPogs = () => {
       const response = await axios.post(`http://localhost:8080/buyPogs`, { pogs_id, user_id: user, quantity})
       setBoughtPogs(response.data)
       console.log('Your purchased Pog' + response.data.id)
-      fetchUserPogs();
+
       fetchPogsForSale();
       fetchAllPogs();
     } catch (error: any) {
@@ -102,16 +108,12 @@ const UserPogs = () => {
   }
 
   useEffect(() => {
-    fetchUserPogs();
     fetchPogsForSale();
     fetchAllPogs();
-    userDetails()
-  }, [purchasePog]);
+    userDetails();
+   }, [user, purchasePog]); // Add user to the dependency array
+   
 
-  const indexOfLastPog = (currentPage + 1) * itemsPerPage;
-  const indexOfFirstPog = indexOfLastPog - itemsPerPage;
-  const currentPogs = pogsForSale.slice(indexOfFirstPog, indexOfLastPog);
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
   return (
     <section className='md:h-screen sm:h-screen w-screen h-screen bg-gray-dark'>
       <div className='flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0'>
@@ -128,6 +130,9 @@ const UserPogs = () => {
                 ))
               }
               <button className="w-50 h-10 text-white bg-blue hover:bg-red-600 font-bold py-2 px-4 rounded"><Link to="/showUserPogs">Show All Pogs Purchased</Link></button>
+                <button className="ml-4 w-auto h-10 text-white bg-blue hover:bg-red font-bold py-2 px-4 rounded" onClick={logout}>
+                  Log Out
+                </button>
               <h2 className="mt-2 text-2xl font-bold mb-3">Pogs available</h2>
               <div className='w-full relative flex overflow-x-hidden'>
                 <div className='py-2 animate-marquee'>
