@@ -1,0 +1,23 @@
+.button {
+    width: 100%;
+    color: #000; /* text-black */
+    font-weight: 700; /* font-bold */
+    padding: 0.5rem 1rem; /* py-2 px-4 */
+    border-radius: 0.25rem; /* rounded */
+    transition: background-color 0.15s ease, color 0.15s ease; /* For smooth hover effect */
+   }
+   
+   .button:hover {
+    background-color: #f56565; /* hover:bg-red */
+    color: #fff; /* hover:text-white */
+   }
+
+   .bg-gray-Dark {
+    background-color: #2d3748; /* Example dark gray color */
+    height: 100vh; /* Cover the entire viewport height */
+    width: 100vw; /* Cover the entire viewport width */
+    overflow: hidden; /* Prevents content from overflowing the container */
+  }
+  
+   
+   
