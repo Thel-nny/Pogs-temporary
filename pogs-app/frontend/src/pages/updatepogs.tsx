@@ -33,12 +33,7 @@ const ChangePogsForm: React.FC = () => {
       name: name,
       ticker_symbol: tickerSymbol, 
       color: color
-    }, 
-      {
-       headers: {
-         'Content-Type': 'application/json',
-       },
-     });
+    });
      if (response.status === 200) {
         navigate(`/adminSide`);
       }

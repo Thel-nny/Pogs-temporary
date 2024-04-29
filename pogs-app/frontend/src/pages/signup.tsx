@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 interface SignUpFormState {
     firstname: string;
     lastname: string;
@@ -8,6 +9,9 @@ interface SignUpFormState {
    }
    
 const SignUpForm: React.FC = () => {
+
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     classification: '',
     firstname: '',
@@ -23,19 +27,15 @@ const SignUpForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (formData.classification === '' || formData.firstname === '' || formData.lastname === '' || formData.email === '' || formData.password === '') { 
+      navigate('/nonexistent-page')
+    }
     try {
-      const response = await fetch('http://localhost:8080/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) {
+      const response = await axios.post('http://localhost:8080/signup', formData);
+      if (response.status !== 200) {
         throw new Error('Network response was not ok');
       } else {
-        await response.json();
-        console.log(formData)
+        navigate('/login');
       }
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error);

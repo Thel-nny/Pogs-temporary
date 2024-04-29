@@ -1,24 +1,18 @@
 import * as express from 'express';
 import { Request, Response } from 'express';
-import { Pool } from "pg";
+import { pool } from './poolInstance';
 import { urlencoded } from "body-parser";
+import dotenv from 'dotenv';
 
 const router = express.Router();
-
-export const database = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'lab2_testing',
-  password: '103099',
-  port: 5432
-})
+dotenv.config();
 
 router.use(urlencoded({ extended: true }))
 router.post('/pogs', async (req: Request, res: Response) => {
   try {
     const { name, ticker_symbol, price, color } = req.body
     if (name && ticker_symbol && price && color) {
-      const connect = await database.connect()
+      const connect = await pool.connect()
       const query = await connect.query('INSERT INTO pogs (name, ticker_symbol, price, color) VALUES ($1, $2, $3, $4) RETURNING *',
         [name, ticker_symbol, price, color])
       connect.release();
@@ -35,7 +29,7 @@ router.post('/pogs', async (req: Request, res: Response) => {
 
 router.get('/pogs', async (req: Request, res: Response) => {
   try {
-    const connect = await database.connect()
+    const connect = await pool.connect()
     const result = await connect.query('SELECT * FROM pogs');
     connect.release();
     res.status(200).json(result.rows);
@@ -49,7 +43,7 @@ router.get('/pogs', async (req: Request, res: Response) => {
 router.get('/pogs/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const connect = await database.connect()
+    const connect = await pool.connect()
     const result = await connect.query('SELECT * FROM pogs WHERE id = $1', [id])
     connect.release();
     if (result.rows.length !== 0) {
@@ -67,7 +61,7 @@ router.put('/pogs/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, ticker_symbol, price, color } = req.body;
-    const connect = await database.connect();
+    const connect = await pool.connect();
 
     // Prepare the update statement
     const query = `UPDATE pogs SET name = $1, ticker_symbol = $2,
@@ -92,7 +86,7 @@ router.put('/pogs/:id', async (req: Request, res: Response) => {
 router.delete('/pogs/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const connect = await database.connect();
+    const connect = await pool.connect();
     const query = 'DELETE FROM pogs WHERE id = $1';
     const values = [id];
     const result = await connect.query(query, values);

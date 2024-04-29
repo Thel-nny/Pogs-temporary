@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios, { Axios } from 'axios';
+import axios from 'axios';
 
 interface Pog {
   id: number;
@@ -33,10 +33,9 @@ const UserPogsPurchased = () => {
     try {
        const response = await axios.post(`http://localhost:8080/sellPog`, 
        { user_id: user, pogs_id: pogId, quantity: 1 });
-       // Assuming the response contains the updated Pog information
-       // If the quantity is less than 1 after selling, remove it from the list
        const updatedPog = response.data;
-       if (updatedPog.quantity > 1) {
+       console.log("Pog successfully sold");
+       if (updatedPog.quantity <= 0) {
          setPurchasedPogs(purchasedPogs.filter(pog => pog.id !== pogId));
        } else {
          // If the quantity is not less than 1, update the quantity in the list

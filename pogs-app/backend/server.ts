@@ -36,7 +36,7 @@ app.post('/signup', async (req, res) => {
     client.release();
     console.log('User signed up successfully:', result.rows[0]);
     console.log('Hashed password:', hashedPassword);
-    return res.json({ message: 'User signed up successfully' });
+    return res.status(200).json({ message: 'User signed up successfully' });
   } catch (error) {
     console.error('Error signing up:', error);
     res.status(500).json({ error: 'An error occurred while signing up' });
@@ -248,15 +248,14 @@ app.post('/buyPogs', async (req, res) => {
     }
     const cart = await client.query('SELECT * FROM carts WHERE user_id = $1 AND pog_id = $2', [user_id, pogs_id])
     if (cart.rows.length === 0) {
-      const newBalance = user.rows[0].wallet - (pog.rows[0].price * quantity)
+      const newBalance = Number(user.rows[0].wallet - (pog.rows[0].price * quantity))
       const insert = await client.query('INSERT INTO carts (user_id, pog_id, quantity) VALUES($1, $2, $3) RETURNING *', [user_id, pogs_id, quantity])
       await client.query('UPDATE users SET wallet = $1 WHERE id = $2', [newBalance, user_id])
-      // const cart = await client.query('')
       return res.status(201).json(insert.rows)
     } else {
       const newQuantity = cart.rows[0].quantity + quantity
       const update = await client.query('UPDATE carts SET quantity = $1 WHERE user_id = $2 AND pog_id = $3 RETURNING *', [newQuantity, user_id, pogs_id])
-      const newBalance = user.rows[0].wallet - (pog.rows[0].price * quantity)
+      const newBalance = Number(user.rows[0].wallet - (pog.rows[0].price * quantity))
       await client.query('UPDATE users SET wallet = $1 WHERE id = $2', [newBalance, user_id])
       return res.status(201).json(update.rows)
     } //another if else statement na di siya pwede ka buy pogs if iya money is kulang

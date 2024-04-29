@@ -27,17 +27,23 @@ const LoginForm: React.FC = () => {
 
  const handleLogin = async (email: string, password: string, classification: string) => {
   try {
+
+    if (email === '' || password === '' || !email || !password) {
+      alert('Please fill in all fields')
+      navigate('/login')
+    }
+
      const response = await axios.post('http://localhost:8080/login', {email, password, classification})
      console.log(response.data)
      if (response.status === 200) {
        localStorage.setItem('userId', response.data.user.id);
-       if (response.data.user.classification === 'user') {
-         navigate(`/userPogs`);
-       } else if (response.data.user.classification === 'admin') {
+       if (response.data.user.classification === 'admin') {
          navigate(`/adminSide`);
+       } else {
+         navigate(`/userPogs`);
        }
      } else {
-       alert('Login failed.');
+      alert('Invalid email or password')
      }
   } catch (error) {
      console.error('There was a problem with the fetch operation:', error);
@@ -57,7 +63,7 @@ const LoginForm: React.FC = () => {
         <label className='block mb-2 text-md font-medium text-gray-900'>
         Password: <input className='bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg w-full p-4' type= "password" name="password" value={formData.password} onChange={handleInputChange}/>
         </label>
-        <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="submit">Login</button>
+        <button className='border rounded-lg p-2 w-full text-white bg-primary-400 hover:bg-primary-900' type="submit" >Login</button>
         <a className='text-blue-dark hover:underline' href='/signup'>Don't have an account? Make a new one</a>
       <br />
     </form>

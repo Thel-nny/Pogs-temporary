@@ -8,7 +8,6 @@ interface Pog {
   ticker_symbol: string;
   price: number;
   color: string;
-  user_id: number;
   previous_price: number;
 }
 

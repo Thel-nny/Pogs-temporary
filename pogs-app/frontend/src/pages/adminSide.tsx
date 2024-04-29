@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './pages.css'
+import './pages.css';
 interface Pog {
   id: number;
   name: string;
@@ -154,9 +154,9 @@ const AdminSide = () => {
                 </li>
               ))}
             </ul>
-            <div className="flex justify-center space-x-4">
+            <div className="flex justify-center space-x-4" >
               {Array.from({ length: Math.ceil(pogsForSale.length / itemsPerPage) }, (_, i) => (
-                <button key={i} onClick={() => paginate(i)} className="px-4 py-2 border rounded-lg bg-primary-400 text-white hover:bg-primary-500">
+                <button key={i} onClick={() => paginate(i)} className="px-4 py-2 border rounded-lg bg-primary-400 text-white hover:bg-primary-500" data-testid="page-button">
                  {i + 1}
                 </button>
               ))}
