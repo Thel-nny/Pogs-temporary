@@ -8,7 +8,7 @@ npm start on the frontend folder
 There are preset accounts:
 
 User :
-Email: User@gmail.com
+Email: user@gmail.com
 password: users
 
 Admin:
