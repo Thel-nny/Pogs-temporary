@@ -1,3 +1,5 @@
+Run npm i first before running both sides
+
 To start the backend:
 npm start on the backend folder
 
